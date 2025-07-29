@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { Ollama } from 'ollama';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const ollama = new Ollama({
+  host: 'http://localhost:11434'
 });
 
 interface Email {
@@ -26,8 +26,16 @@ interface AssistantMessage {
 export async function POST(request: NextRequest) {
   try {
     const { question, email, tone, conversationHistory } = await request.json();
+    
+    console.log('Assistant request received:', { 
+      question: question?.substring(0, 50) + '...', 
+      emailSubject: email?.subject,
+      tone,
+      hasHistory: !!conversationHistory?.length 
+    });
 
     if (!process.env.OPENAI_API_KEY) {
+      console.error('OpenAI API key not configured');
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
@@ -82,14 +90,20 @@ Provide helpful, contextual responses about the email. Be concise but informativ
       content: question
     });
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages,
-      temperature: 0.7,
-      max_tokens: 500
+    console.log('Making OpenAI API call with', messages.length, 'messages');
+    
+    console.log('Making Ollama API call with', messages.length, 'messages');
+    
+    const completion = await ollama.chat({
+      model: 'phi3',
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
     });
 
-    const response = completion.choices[0]?.message?.content || 'I apologize, but I couldn\'t process your request.';
+    const response = completion.message?.content || 'I apologize, but I couldn\'t process your request.';
+    console.log('Ollama response received:', response.substring(0, 100) + '...');
 
     // Generate a draft response if the question is about responding
     let draftResponse = '';
@@ -107,8 +121,8 @@ Generate a draft email response that is:
 - Professional and well-structured
 - Ready to be edited by the user`;
 
-      const draftCompletion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      const draftCompletion = await ollama.chat({
+        model: 'phi3',
         messages: [
           {
             role: 'system',
@@ -118,12 +132,10 @@ Generate a draft email response that is:
             role: 'user',
             content: draftPrompt
           }
-        ],
-        temperature: 0.5,
-        max_tokens: 300
+        ]
       });
 
-      draftResponse = draftCompletion.choices[0]?.message?.content || '';
+      draftResponse = draftCompletion.message?.content || '';
     }
 
     return NextResponse.json({
@@ -133,8 +145,12 @@ Generate a draft email response that is:
 
   } catch (error) {
     console.error('Error processing assistant request:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
-      { error: 'Failed to process assistant request' },
+      { error: 'Failed to process assistant request', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

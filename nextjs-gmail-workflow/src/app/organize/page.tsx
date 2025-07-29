@@ -171,9 +171,10 @@ export default function OrganizePage() {
     if (!userQuestion.trim() || !selectedEmail) return;
 
     setAssistantLoading(true);
+    const questionText = userQuestion; // Store the question before clearing
     const newMessage: AssistantMessage = {
       role: 'user',
-      content: userQuestion,
+      content: questionText,
       timestamp: new Date()
     };
 
@@ -187,7 +188,7 @@ export default function OrganizePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          question: userQuestion,
+          question: questionText,
           email: selectedEmail,
           tone: selectedTone,
           conversationHistory: assistantMessages
@@ -203,9 +204,24 @@ export default function OrganizePage() {
         };
         setAssistantMessages(prev => [...prev, assistantMessage]);
         setDraftResponse(data.draftResponse || '');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Assistant API error:', response.status, errorData);
+        const errorMessage: AssistantMessage = {
+          role: 'assistant',
+          content: `Error: ${errorData.error || 'Failed to get response from assistant'}`,
+          timestamp: new Date()
+        };
+        setAssistantMessages(prev => [...prev, errorMessage]);
       }
     } catch (error) {
       console.error('Error asking assistant:', error);
+      const errorMessage: AssistantMessage = {
+        role: 'assistant',
+        content: 'Error: Failed to connect to assistant service',
+        timestamp: new Date()
+      };
+      setAssistantMessages(prev => [...prev, errorMessage]);
     } finally {
       setAssistantLoading(false);
     }

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { Ollama } from 'ollama';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const ollama = new Ollama({
+  host: 'http://localhost:11434'
 });
 
 interface Email {
@@ -26,9 +26,12 @@ export async function POST(request: NextRequest) {
   try {
     const { emails } = await request.json();
 
-    if (!process.env.OPENAI_API_KEY) {
+    // Check if Ollama is available
+    try {
+      await ollama.list();
+    } catch (error) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
+        { error: 'Ollama server not available. Please start Ollama with: ollama serve' },
         { status: 500 }
       );
     }
@@ -78,8 +81,8 @@ Example response format:
 ]
 `;
 
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      const completion = await ollama.chat({
+        model: 'phi3',
         messages: [
           {
             role: 'system',
@@ -89,12 +92,10 @@ Example response format:
             role: 'user',
             content: prompt
           }
-        ],
-        temperature: 0.3,
-        max_tokens: 1000
+        ]
       });
 
-      const responseText = completion.choices[0]?.message?.content;
+      const responseText = completion.message?.content;
       
       if (responseText) {
         try {
