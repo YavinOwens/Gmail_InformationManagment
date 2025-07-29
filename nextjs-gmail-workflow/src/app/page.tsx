@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Sparkles } from 'lucide-react'
 
 interface Email {
   id: string
@@ -98,6 +99,13 @@ export default function Home() {
             <div className="flex space-x-4">
               {isAuthenticated ? (
                 <>
+                  <button
+                    onClick={() => router.push('/organize')}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md font-medium flex items-center space-x-2"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Organize</span>
+                  </button>
                   <button
                     onClick={refreshEmails}
                     disabled={isLoading}
