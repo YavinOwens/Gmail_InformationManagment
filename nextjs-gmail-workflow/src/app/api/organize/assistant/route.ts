@@ -34,10 +34,12 @@ export async function POST(request: NextRequest) {
       hasHistory: !!conversationHistory?.length 
     });
 
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('OpenAI API key not configured');
+    // Check if Ollama is available
+    try {
+      await ollama.list();
+    } catch (error) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
+        { error: 'Ollama server not available. Please start Ollama with: ollama serve' },
         { status: 500 }
       );
     }
@@ -90,8 +92,6 @@ Provide helpful, contextual responses about the email. Be concise but informativ
       content: question
     });
 
-    console.log('Making OpenAI API call with', messages.length, 'messages');
-    
     console.log('Making Ollama API call with', messages.length, 'messages');
     
     const completion = await ollama.chat({
