@@ -8,7 +8,7 @@ A comprehensive Gmail API workflow for email retrieval and analysis, with both P
 
 *Watch the demo above to see the AI-powered email organization and task management features in action!*
 
-## 🚀 **WORKING SOLUTION: Next.js Application**
+## 🚀 **Application**
 
 The **recommended and working solution** is the Next.js application located in `nextjs-gmail-workflow/`.
 
