@@ -1,5 +1,0 @@
-{
-  "/api/organize/assistant/route": "app/api/organize/assistant/route.js",
-  "/api/organize/categorize/route": "app/api/organize/categorize/route.js",
-  "/api/organize/draft/route": "app/api/organize/draft/route.js"
-}
