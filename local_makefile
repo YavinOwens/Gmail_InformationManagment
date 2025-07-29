@@ -1,0 +1,140 @@
+.PHONY: help install test lint format security clean run dev setup-env
+
+# Default target
+help:
+	@echo "Available commands for LOCAL development:"
+	@echo "  setup-env    - Set up local environment (Python venv, dependencies)"
+	@echo "  install      - Install dependencies in active environment"
+	@echo "  test         - Run tests with coverage"
+	@echo "  lint         - Run linting checks"
+	@echo "  format       - Format code with black"
+	@echo "  security     - Run security checks"
+	@echo "  quality-check - Run all quality checks"
+	@echo "  clean        - Clean up generated files"
+	@echo "  run          - Run the application"
+	@echo "  dev          - Start development server"
+	@echo "  notebook     - Start Jupyter notebook"
+
+# Set up local environment
+setup-env:
+	@echo "Setting up local environment..."
+	python local_setup.py
+
+# Install dependencies
+install:
+	@echo "Installing dependencies..."
+	pip install -r local_requirements.txt
+	pip install -e .
+
+# Set up environment and install dependencies
+setup: setup-env install
+	@echo "Local environment setup complete!"
+
+# Run tests
+test:
+	@echo "Running tests..."
+	pytest --cov=gmail_workflow --cov-report=html --cov-report=term-missing
+
+# Run linting
+lint:
+	@echo "Running linting checks..."
+	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+# Format code
+format:
+	@echo "Formatting code..."
+	black . --line-length=127
+
+# Run security checks
+security:
+	@echo "Running security checks..."
+	bandit -r . -f json -o bandit-report.json
+	safety check --json --output safety-report.json
+
+# Run all quality checks
+quality-check: format lint security test
+	@echo "All quality checks completed!"
+
+# Clean up generated files
+clean:
+	@echo "Cleaning up..."
+	find . -type f -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -delete
+	find . -type d -name "*.egg-info" -exec rm -rf {} +
+	rm -rf build/
+	rm -rf dist/
+	rm -rf htmlcov/
+	rm -rf .pytest_cache/
+	rm -f .coverage
+	rm -f bandit-report.json
+	rm -f safety-report.json
+	rm -f retrieved_emails.json
+	rm -f gmail_workflow.log
+	rm -f audit.log
+	rm -rf logs/*.log
+
+# Run the application
+run:
+	@echo "Running Gmail workflow application..."
+	python main.py
+
+# Development server
+dev:
+	@echo "Starting development server..."
+	FLASK_ENV=development FLASK_DEBUG=1 python -m flask run --host=0.0.0.0 --port=5000
+
+# Start Jupyter notebook
+notebook:
+	@echo "Starting Jupyter notebook..."
+	jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser
+
+# Security audit
+audit:
+	@echo "Running comprehensive security audit..."
+	python -c "from gmail_workflow.security.auditor import AuditRunner; AuditRunner().generate_audit_report()"
+
+# Generate documentation
+docs:
+	@echo "Generating documentation..."
+	pydoc-markdown --render-toc --output-file docs/api.md gmail_workflow
+
+# Install pre-commit hooks
+install-hooks:
+	@echo "Installing pre-commit hooks..."
+	pip install pre-commit
+	pre-commit install
+
+# Update dependencies
+update-deps:
+	@echo "Updating dependencies..."
+	pip install --upgrade -r local_requirements.txt
+	safety check --update
+
+# Create virtual environment manually
+venv:
+	@echo "Creating virtual environment..."
+	python -m venv gmail_env
+	@echo "Virtual environment created. Activate with:"
+	@echo "  source gmail_env/bin/activate  # On macOS/Linux"
+	@echo "  gmail_env\\Scripts\\activate     # On Windows"
+
+# Check environment
+check-env:
+	@echo "Checking environment..."
+	@echo "Python version:"
+	@python --version
+	@echo "Pip version:"
+	@pip --version
+	@echo "Virtual environment:"
+	@if [ -n "$$VIRTUAL_ENV" ]; then echo "✅ Active: $$VIRTUAL_ENV"; else echo "❌ No virtual environment active"; fi
+	@echo "Installed packages:"
+	@pip list --format=columns
+
+# Quick start (setup everything)
+quick-start: setup
+	@echo "🎉 Quick start complete!"
+	@echo "Next steps:"
+	@echo "1. Add your credentials.json file"
+	@echo "2. Edit .env file with your settings"
+	@echo "3. Run: make run" 

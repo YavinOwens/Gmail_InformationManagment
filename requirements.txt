@@ -1,0 +1,34 @@
+# Gmail API Core Dependencies
+google-auth==2.23.0
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+google-api-python-client==2.108.0
+
+# Security and Encryption
+cryptography==41.0.7
+python-dotenv==1.0.0
+
+# Data Processing and HTTP
+requests==2.31.0
+pandas==2.1.3
+
+# Web Framework (for multi-user deployment)
+flask==3.0.0
+flask-cors==4.0.0
+
+# AWS SDK (for serverless deployment)
+boto3==1.34.0
+
+# Development and Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.11.0
+flake8==6.1.0
+bandit==1.7.5
+safety==2.3.5
+
+# Logging and Monitoring
+structlog==23.2.0
+
+# Optional: For Docker deployment
+gunicorn==21.2.0 

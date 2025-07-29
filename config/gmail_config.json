@@ -1,0 +1,32 @@
+{
+  "gmail_api": {
+    "client_id": "YOUR_CLIENT_ID_HERE",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "redirect_uris": [
+      "http://localhost:8080",
+      "urn:ietf:wg:oauth:2.0:oob"
+    ],
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs"
+  },
+  "application": {
+    "name": "Gmail Information Tagging",
+    "version": "1.0.0",
+    "description": "Secure Gmail API workflow for email retrieval and information tagging"
+  },
+  "security": {
+    "encryption_enabled": true,
+    "audit_logging": true,
+    "gdpr_compliance": true
+  },
+  "defaults": {
+    "days_back": 30,
+    "max_results": 100,
+    "rate_limit": 1000,
+    "rate_limit_window": 3600
+  }
+} 
