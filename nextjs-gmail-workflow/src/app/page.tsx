@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, CheckSquare } from 'lucide-react'
 
 interface Email {
   id: string
@@ -105,6 +105,13 @@ export default function Home() {
                   >
                     <Sparkles className="h-4 w-4" />
                     <span>Organize</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/todo')}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium flex items-center space-x-2"
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                    <span>Todo</span>
                   </button>
                   <button
                     onClick={refreshEmails}

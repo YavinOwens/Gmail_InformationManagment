@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Ollama } from 'ollama';
+import { parseAIResponse } from '@/lib/json-helper';
 
 const ollama = new Ollama({
   host: 'http://localhost:11434'
@@ -20,6 +21,50 @@ interface Email {
 interface CategorizedEmail extends Email {
   theme: string;
   category: string;
+}
+
+// Helper functions to extract theme and category from task data
+function extractThemeFromTask(title: string, description: string): string {
+  const text = `${title} ${description}`.toLowerCase();
+  
+  if (text.includes('work') || text.includes('meeting') || text.includes('project') || text.includes('client')) {
+    return 'work';
+  }
+  if (text.includes('personal') || text.includes('family') || text.includes('friend')) {
+    return 'personal';
+  }
+  if (text.includes('finance') || text.includes('money') || text.includes('payment') || text.includes('bill')) {
+    return 'finance';
+  }
+  if (text.includes('shopping') || text.includes('purchase') || text.includes('buy')) {
+    return 'shopping';
+  }
+  if (text.includes('travel') || text.includes('trip') || text.includes('flight')) {
+    return 'travel';
+  }
+  if (text.includes('health') || text.includes('medical') || text.includes('doctor')) {
+    return 'health';
+  }
+  if (text.includes('education') || text.includes('course') || text.includes('learning')) {
+    return 'education';
+  }
+  
+  return 'other';
+}
+
+function extractCategoryFromTask(title: string, description: string): string {
+  const text = `${title} ${description}`.toLowerCase();
+  
+  if (text.includes('meeting')) return 'meeting';
+  if (text.includes('project')) return 'project';
+  if (text.includes('client')) return 'client';
+  if (text.includes('payment')) return 'payment';
+  if (text.includes('purchase')) return 'purchase';
+  if (text.includes('trip')) return 'trip';
+  if (text.includes('medical')) return 'medical';
+  if (text.includes('course')) return 'course';
+  
+  return 'general';
 }
 
 export async function POST(request: NextRequest) {
@@ -99,16 +144,21 @@ Example response format:
       
       if (responseText) {
         try {
-          const categorization = JSON.parse(responseText);
+          // Use the helper function to parse the response
+          const categorization = parseAIResponse(responseText);
           
           // Merge categorization with original email data
           batch.forEach((email, index) => {
             const categorized = categorization[index];
-            if (categorized) {
+            if (categorized && categorized.title) {
+              // Extract theme and category from the task title/description
+              const theme = extractThemeFromTask(categorized.title, categorized.description);
+              const category = extractCategoryFromTask(categorized.title, categorized.description);
+              
               categorizedEmails.push({
                 ...email,
-                theme: categorized.theme || 'other',
-                category: categorized.category || 'general'
+                theme: theme || 'other',
+                category: category || 'general'
               });
             } else {
               categorizedEmails.push({
@@ -119,7 +169,8 @@ Example response format:
             }
           });
         } catch (parseError) {
-          console.error('Error parsing OpenAI response:', parseError);
+          console.error('Error parsing categorization response:', parseError);
+          console.log('Raw response:', responseText);
           // Fallback categorization
           batch.forEach(email => {
             categorizedEmails.push({
