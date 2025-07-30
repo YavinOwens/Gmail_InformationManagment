@@ -36,7 +36,7 @@ class GmailConfigManager:
         """Get default configuration with the provided client ID"""
         return {
             "gmail_api": {
-                "client_id": os.getenv('GOOGLE_CLIENT_ID', '367821969393-eif7o3k4n199f1n2ujva0fd8562vssmg.apps.googleusercontent.com'),
+                "client_id": os.getenv('GOOGLE_CLIENT_ID', 'YOUR_CLIENT_ID_HERE'),
                 "scopes": ["https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/gmail.modify"],
                 "redirect_uris": ["http://localhost:8080", "urn:ietf:wg:oauth:2.0:oob"],
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
